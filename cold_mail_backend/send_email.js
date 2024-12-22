@@ -20,7 +20,7 @@ const serviceAccountAuth = new JWT({
 
 app.get('/', async (req, res) => {
     try {
-        print('Hello world');
+        res.send("Hello Sumit!");
         const doc = new GoogleSpreadsheet('12FpPguEOn4KSUL0rPl5F2Xltjq8vG0Ypo86d7GxhJ7Y', serviceAccountAuth);
         await doc.loadInfo();
         const sheet = doc.sheetsByIndex[0];

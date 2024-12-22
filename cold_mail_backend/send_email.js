@@ -2,12 +2,21 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const fs = require('fs');
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+app.use(express.json());
+const corsOptions = {
+  origin: ['http://localhost:5500', 'https://cold-mailing.vercel.app/'], // Allow only these origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+};
+
+app.use(cors(corsOptions));
 
 const senderEmail = process.env.SENDER_EMAIL;
 const senderPassword = process.env.SENDER_PASSWORD;
@@ -20,7 +29,6 @@ const serviceAccountAuth = new JWT({
 
 app.get('/send', async (req, res) => {
     try {
-        res.send("Hello Sumit!");
         const doc = new GoogleSpreadsheet('12FpPguEOn4KSUL0rPl5F2Xltjq8vG0Ypo86d7GxhJ7Y', serviceAccountAuth);
         await doc.loadInfo();
         const sheet = doc.sheetsByIndex[0];

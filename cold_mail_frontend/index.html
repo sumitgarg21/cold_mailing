@@ -6,9 +6,10 @@
     <title>Send mails</title>
     <script>
       function triggerEmailScript() {
-        fetch("https://cold-mailing.onrender.com", {
+        fetch("https://cold-mailing.onrender.com/send", {
           method: "GET",
         })
+          console.log(response)
           .then((response) => {
             if (!response.success) {
               throw new Error(`HTTP error! Status: ${response.status}`);

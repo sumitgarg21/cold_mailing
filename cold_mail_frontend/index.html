@@ -4,24 +4,66 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Send mails</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+
+      button {
+        background-color: green;
+        color: white;
+        font-size: 2rem;
+        padding: 20px 40px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      button:hover {
+        transform: scale(1.05);
+      }
+
+      button:disabled {
+        background-color: gray;
+        cursor: not-allowed;
+      }
+    </style>
     <script>
-      function triggerEmailScript() {
+      function triggerEmailScript(button) {
+        // Disable the button
+        button.disabled = true;
+        button.innerText = "Sending...";
+
         fetch("https://cold-mailing.onrender.com/send", {
           method: "GET",
         })
-          console.log(response)
           .then((response) => {
-            if (!response.success) {
+            if (!response.ok) {
               throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.json();
           })
-          .then((data) => alert(data.message))
-          .catch((error) => alert("Error: " + error.message));
+          .then((data) => {
+            alert(data.message);
+          })
+          .catch((error) => {
+            alert("Error: " + error.message);
+          })
+          .finally(() => {
+            // Re-enable the button
+            button.disabled = false;
+            button.innerText = "Send mails";
+          });
       }
     </script>
   </head>
   <body>
-    <button onclick="triggerEmailScript()">Send mails</button>
+    <button onclick="triggerEmailScript(this)">Send mails</button>
   </body>
 </html>

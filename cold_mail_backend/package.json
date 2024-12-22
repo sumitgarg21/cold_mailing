@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "google-auth-library": "^9.15.0",
+    "google-spreadsheet": "^4.1.4",
+    "nodemailer": "^6.9.16"
+  }
+}

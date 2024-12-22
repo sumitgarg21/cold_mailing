@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Send mails</title>
+    <script>
+      function triggerEmailScript() {
+        fetch("http://localhost:5000/api/send_email", {
+          method: "GET",
+        })
+          .then((response) => {
+            if (!response.success) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => alert(data.message))
+          .catch((error) => alert("Error: " + error.message));
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="triggerEmailScript()">Send mails</button>
+  </body>
+</html>

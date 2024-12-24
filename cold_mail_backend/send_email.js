@@ -83,8 +83,9 @@ async function sendMail(recipientEmails, recipientCompanies, recipientSalutation
                 from: senderEmail,
                 to: recipientEmails[index],
                 subject: `Competitive Programmer + Full Stack Developer = Perfect Fit for ${recipientCompanies[index]}`,
-                html: emailTemplate.replace('{company_name}', recipientCompanies[index]),
-                html: emailTemplate.replace('{salutation}', recipientSalutations[index]),
+                html: emailTemplate
+                    .replace('{company_name}', recipientCompanies[index])
+                    .replace('{salutation}', recipientSalutations[index]),
             };
 
             await transporter.sendMail(mailOptions);

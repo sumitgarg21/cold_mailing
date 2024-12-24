@@ -35,20 +35,24 @@ app.get('/send', async (req, res) => {
         const rows = await sheet.getRows();
         const recipientEmails = [];
         const recipientCompanies = [];
+        const recipientSalutations = [];
 
         rows.forEach((row) => {
             if (row._rawData && row._rawData.length >= 2) {
                 const mailId = row._rawData[0];
                 const companyName = row._rawData[1];
+                const salutation = row._rawData[2];
+                const send = row._rawData[3];
 
-                if (mailId && companyName) {
+                if (mailId && companyName&& send === '1') {
                     recipientEmails.push(mailId);
                     recipientCompanies.push(companyName);
+                    recipientSalutations.push(salutation);
                 }
             }
         });
 
-        const result = await sendMail(recipientEmails, recipientCompanies);
+        const result = await sendMail(recipientEmails, recipientCompanies, recipientSalutations);
         console.log(result);
         res.json(result);
     } catch (error) {
@@ -57,7 +61,7 @@ app.get('/send', async (req, res) => {
     }
 });
 
-async function sendMail(recipientEmails, recipientCompanies) {
+async function sendMail(recipientEmails, recipientCompanies, recipientSalutations) {
     const smtpServer = 'smtp.gmail.com';
     const smtpPort = 587;
 
@@ -80,6 +84,7 @@ async function sendMail(recipientEmails, recipientCompanies) {
                 to: recipientEmails[index],
                 subject: `Competitive Programmer + Full Stack Developer = Perfect Fit for ${recipientCompanies[index]}`,
                 html: emailTemplate.replace('{company_name}', recipientCompanies[index]),
+                html: emailTemplate.replace('{salutation}', recipientSalutations[index]),
             };
 
             await transporter.sendMail(mailOptions);

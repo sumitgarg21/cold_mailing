@@ -11,9 +11,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 app.use(express.json());
 const corsOptions = {
-  origin: ['http://localhost:5500', 'https://cold-mailing.vercel.app/'], // Allow only these origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    origin: ['http://localhost:5500', 'https://cold-mailing.vercel.app/'], // Allow only these origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 };
 
 app.use(cors(corsOptions));
@@ -44,7 +44,7 @@ app.get('/send', async (req, res) => {
                 const salutation = row._rawData[2];
                 const send = row._rawData[3];
 
-                if (mailId && companyName&& send === '1') {
+                if (mailId && companyName && send === '1') {
                     recipientEmails.push(mailId);
                     recipientCompanies.push(companyName);
                     recipientSalutations.push(salutation);
@@ -67,6 +67,7 @@ async function sendMail(recipientEmails, recipientCompanies, recipientSalutation
 
     try {
         const transporter = nodemailer.createTransport({
+            pool: true,
             host: smtpServer,
             port: smtpPort,
             secure: false,
@@ -91,7 +92,7 @@ async function sendMail(recipientEmails, recipientCompanies, recipientSalutation
             await transporter.sendMail(mailOptions);
             console.log(`Email sent to ${recipientEmails[index]} for ${recipientCompanies[index]}`);
         }
-
+        transporter.close();
         console.log('Emails sent successfully.');
         return { success: true, message: 'Emails sent successfully.' };
     } catch (error) {

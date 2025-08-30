@@ -23,6 +23,12 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json());
 
+const allowedOrigins = [
+  'http://localhost:5500',     // local dev (127.0.0.1 will also work via this)
+  'http://127.0.0.1:5500',
+  'https://cold-mailing.vercel.app' // your hosted frontend
+];
+
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like curl, Postman)

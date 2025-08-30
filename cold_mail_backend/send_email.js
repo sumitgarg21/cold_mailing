@@ -1,10 +1,14 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { JWT } = require('google-auth-library');
+// const { GoogleSpreadsheet } = require('google-spreadsheet');
+// const { JWT } = require('google-auth-library');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const axios = require('axios');
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME;
 dotenv.config();
 
 const app = express();
@@ -20,44 +24,90 @@ app.use(cors(corsOptions));
 
 const senderEmail = process.env.SENDER_EMAIL;
 const senderPassword = process.env.SENDER_PASSWORD;
-const googleCreds = JSON.parse(process.env.GOOGLE_SHEET_CREDS);
-const serviceAccountAuth = new JWT({
-    email: googleCreds.client_email,
-    key: googleCreds.private_key,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
-});
+// const googleCreds = JSON.parse(process.env.GOOGLE_SHEET_CREDS);
+// const serviceAccountAuth = new JWT({
+//     email: googleCreds.client_email,
+//     key: googleCreds.private_key,
+//     scopes: ['https://www.googleapis.com/auth/spreadsheets']
+// });
+
+// app.get('/send', async (req, res) => {
+//     try {
+//         const doc = new GoogleSpreadsheet('12FpPguEOn4KSUL0rPl5F2Xltjq8vG0Ypo86d7GxhJ7Y', serviceAccountAuth);
+//         await doc.loadInfo();
+//         const sheet = doc.sheetsByIndex[0];
+//         const rows = await sheet.getRows();
+//         const recipientEmails = [];
+//         const recipientCompanies = [];
+//         const recipientSalutations = [];
+
+//         rows.forEach((row) => {
+//             if (row._rawData && row._rawData.length >= 2) {
+//                 const mailId = row._rawData[0];
+//                 const companyName = row._rawData[1];
+//                 const salutation = row._rawData[2];
+//                 const send = row._rawData[3];
+
+//                 if (mailId && companyName && send === '1') {
+//                     recipientEmails.push(mailId);
+//                     recipientCompanies.push(companyName);
+//                     recipientSalutations.push(salutation);
+//                 }
+//             }
+//         });
+
+//         const result = await sendMail(recipientEmails, recipientCompanies, recipientSalutations);
+//         console.log(result);
+//         res.json(result);
+//     } catch (error) {
+//         console.error(`${error.message}`);
+//         res.status(500).json({ message: `Error: ${error.message}` });
+//     }
+// });
 
 app.get('/send', async (req, res) => {
     try {
-        const doc = new GoogleSpreadsheet('12FpPguEOn4KSUL0rPl5F2Xltjq8vG0Ypo86d7GxhJ7Y', serviceAccountAuth);
-        await doc.loadInfo();
-        const sheet = doc.sheetsByIndex[0];
-        const rows = await sheet.getRows();
+        // Fetch records from Airtable
+        const response = await axios.get(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${AIRTABLE_TOKEN}`
+                }
+            }
+        );
+
+        const rows = response.data.records;
+
         const recipientEmails = [];
         const recipientCompanies = [];
         const recipientSalutations = [];
 
-        rows.forEach((row) => {
-            if (row._rawData && row._rawData.length >= 2) {
-                const mailId = row._rawData[0];
-                const companyName = row._rawData[1];
-                const salutation = row._rawData[2];
-                const send = row._rawData[3];
+        rows.forEach(record => {
+            const fields = record.fields;
+            const mailId = fields.Email;
+            const companyName = fields.Company;
+            const salutation = fields.Salutation;
+            const send = fields.Send;
 
-                if (mailId && companyName && send === '1') {
-                    recipientEmails.push(mailId);
-                    recipientCompanies.push(companyName);
-                    recipientSalutations.push(salutation);
-                }
+            if (mailId && companyName && send === 1) {
+                recipientEmails.push(mailId);
+                recipientCompanies.push(companyName);
+                recipientSalutations.push(salutation);
             }
         });
 
         const result = await sendMail(recipientEmails, recipientCompanies, recipientSalutations);
-        console.log(result);
         res.json(result);
-    } catch (error) {
-        console.error(`${error.message}`);
-        res.status(500).json({ message: `Error: ${error.message}` });
+
+    } 
+    // catch (error) {
+    //     console.error(error.message);
+    //     res.status(500).json({ message: `Error: ${error.message}` });
+    // }
+    catch (error) {
+    console.error("Airtable error:", error.response?.data || error.message);
+    res.status(500).json({ message: `Error: ${error.message}` });
     }
 });
 
@@ -92,6 +142,24 @@ async function sendMail(recipientEmails, recipientCompanies, recipientSalutation
             await transporter.sendMail(mailOptions);
             console.log(`Email sent to ${recipientEmails[index]} for ${recipientCompanies[index]}`);
         }
+        
+        for (let index = 0; index < recipientEmails.length; index++) {
+            try {
+                const mailOptions = {
+                    from: senderEmail,
+                    to: recipientEmails[index],
+                    subject: `Competitive Programmer + Full Stack Developer = Perfect Fit for ${recipientCompanies[index]}`,
+                    html: emailTemplate
+                        .replace('{company_name}', recipientCompanies[index])
+                        .replace('{salutation}', recipientSalutations[index]),
+                };
+                await transporter.sendMail(mailOptions);
+                console.log(`Email sent to ${recipientEmails[index]}`);
+            } catch (err) {
+                console.error(`Failed for ${recipientEmails[index]}:`, err.message);
+            }
+    }
+}
         transporter.close();
         console.log('Emails sent successfully.');
         return { success: true, message: 'Emails sent successfully.' };

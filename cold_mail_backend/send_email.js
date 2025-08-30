@@ -1,7 +1,5 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-// const { GoogleSpreadsheet } = require('google-spreadsheet');
-// const { JWT } = require('google-auth-library');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const fs = require('fs');
@@ -24,12 +22,6 @@ app.use(cors(corsOptions));
 
 const senderEmail = process.env.SENDER_EMAIL;
 const senderPassword = process.env.SENDER_PASSWORD;
-// const googleCreds = JSON.parse(process.env.GOOGLE_SHEET_CREDS);
-// const serviceAccountAuth = new JWT({
-//     email: googleCreds.client_email,
-//     key: googleCreds.private_key,
-//     scopes: ['https://www.googleapis.com/auth/spreadsheets']
-// });
 
 // app.get('/send', async (req, res) => {
 //     try {
@@ -142,24 +134,6 @@ async function sendMail(recipientEmails, recipientCompanies, recipientSalutation
             await transporter.sendMail(mailOptions);
             console.log(`Email sent to ${recipientEmails[index]} for ${recipientCompanies[index]}`);
         }
-        
-        for (let index = 0; index < recipientEmails.length; index++) {
-            try {
-                const mailOptions = {
-                    from: senderEmail,
-                    to: recipientEmails[index],
-                    subject: `Competitive Programmer + Full Stack Developer = Perfect Fit for ${recipientCompanies[index]}`,
-                    html: emailTemplate
-                        .replace('{company_name}', recipientCompanies[index])
-                        .replace('{salutation}', recipientSalutations[index]),
-                };
-                await transporter.sendMail(mailOptions);
-                console.log(`Email sent to ${recipientEmails[index]}`);
-            } catch (err) {
-                console.error(`Failed for ${recipientEmails[index]}:`, err.message);
-            }
-    }
-}
         transporter.close();
         console.log('Emails sent successfully.');
         return { success: true, message: 'Emails sent successfully.' };

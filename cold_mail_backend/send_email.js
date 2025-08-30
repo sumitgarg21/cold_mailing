@@ -23,13 +23,19 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json());
 
-const corsOptions = {
-    origin: ['http://127.0.0.1:5500', 'https://cold-mailing.vercel.app/'], // Allow only these origins
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-};
-
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 app.get('/send', async (req, res) => {
     try {

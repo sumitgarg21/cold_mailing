@@ -99,7 +99,7 @@ async function sendMail(recipients) {
                 const mailOptions = {
                     from: senderEmail,
                     to: r.email,
-                    subject: `Application for internship and FTE SDE role at ${r.company}`,
+                    subject: `Application for SDE 1 role at ${r.company}`,
                     html: emailTemplate
                         .replace('{company_name}', r.company)
                         .replace('{salutation}', r.salutation),

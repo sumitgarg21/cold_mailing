@@ -80,16 +80,16 @@ app.get('/send', async (req, res) => {
 // ==== Send Emails ====
 async function sendMail(recipients) {
     try {
-        const transporter = nodemailer.createTransport({
-            pool: true,
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: senderEmail,
-                pass: senderPassword,
-            },
-        });
+            const transporter = nodemailer.createTransport({
+                pool: true,
+                host: 'smtp-relay.brevo.com',   // Brevo's relay, not Gmail
+                port: 587,
+                secure: false,
+                auth: {
+                    user: senderEmail,           // your Brevo account email
+                    pass: senderPassword,
+                },
+            });
 
         const emailTemplate = fs.readFileSync('email_template.html', 'utf-8');
 
